@@ -17,7 +17,6 @@ extern char debug_string[255];
 void initConfig() {
     string line, lines[ EXPECTED_PREF_LINES + 2 ];
     ifstream pref_file;
-    char *end;
     int cur_line = 1;
     float tmp;
 
@@ -55,21 +54,21 @@ void initConfig() {
     
     /* line 7: transition alt */
     line = lines[ 7 ];
-    tmp  = strtof( line.c_str(), &end );
+    tmp  = atof( line.c_str() );
     if( tmp > 0 && tmp < 100000 ) {
         config_transition_alt = tmp;
     }
     
     /* line 11: offset angle */
     line = lines[ 11 ];
-    tmp  = strtof( line.c_str(), &end );
+    tmp  = atof( line.c_str() );
     if( tmp >= -90 && tmp <= 90 ) {
         config_offset_angle = tmp;
     }
     
     /* line 15: base angle */
     line = lines[ 15 ];
-    tmp  = strtof( line.c_str(), &end );
+    tmp  = atof( line.c_str() );
     if( tmp >= -90 && tmp <= 90 ) {
         config_base_angle = tmp;
     }
