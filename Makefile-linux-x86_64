@@ -12,7 +12,7 @@ XP_PATH     = ~/X-Plane\ 9
 PLUGIN_PATH = $(XP_PATH)/Resources/plugins
 PKG_NAME    = AutoAngle
 LINK        = g++
-LFLAGS        = -m32 -Wl,-O1 -Wl,-rpath,/home/colin/QtSDK32/Desktop/Qt/474/gcc/lib -shared
+LFLAGS        = -m32 -Wl,-O1 -shared
 
 autoangle: $(SOURCES)
 	$(CXX) -c $(CXXFLAGS) -o aa.o aa.cpp $(INCPATH)
