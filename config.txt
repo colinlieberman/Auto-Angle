@@ -1,0 +1,19 @@
+## THIS IS THE CONFIG FILE FOR AUTO ANGLE PLUGIN
+## be sure that you don't change this file so that
+## anything is on the wrong line!
+
+# TRANSITION ALTITUDE (meters agl)
+# the altitude above which we switch the vertical offset
+800
+
+# OFFSET (degrees)
+# how much to change the vertical offset
+5
+
+# BASE (degress)
+# the baseline offset
+0
+
+# e.g. :
+# bellow TRANSITION ALTITUTDE, vertical offset is BASE
+# above TRANSITION ALTITUDE, vertical offset is BASE + OFFSET

@@ -1,30 +1,16 @@
 #include "aa.h"
 
-#include "XPLMDisplay.h"
-#include "XPLMGraphics.h"
-#include "XPLMUtilities.h"
-#include "XPLMDataAccess.h"
-#include "XPLMProcessing.h"
-#include "XPLMPlugin.h"
-#include "XPLMMenus.h"
-#include "XPWidgets.h"
-#include "XPStandardWidgets.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <string>
-#include <string.h>
-#include <math.h>
-
 XPLMDataRef ref_alt_agl         = NULL;
-XPLMDataRef ref_alt_msl         = NULL;
 XPLMDataRef ref_deg_vert        = NULL;
 
 XPLMWindowID	debug_window = NULL;
 int				clicked = 0;
 
 char debug_string[255];
+
+extern float config_transition_alt;
+extern float config_offset_angle;
+extern float config_base_angle;
 
 /* window callbacks for debugging */
 void MyDrawWindowCallback(
@@ -55,15 +41,13 @@ float AutoAngleCallback(
 
     /* get altitude - it's used in a number of places */
     float alt_agl = XPLMGetDataf( ref_alt_agl );
-    float alt_msl = XPLMGetDataf( ref_alt_msl );
     float deg_vert;
 
-    /* TODO: config */
-    if( alt_agl > 800 ) {
-        deg_vert = -5;
+    if( alt_agl > config_transition_alt ) {
+        deg_vert = config_base_angle - config_offset_angle;
     }
     else {
-        deg_vert = 0;
+        deg_vert = config_base_angle;
     }
 
     XPLMSetDataf( ref_deg_vert, deg_vert );
@@ -78,9 +62,10 @@ PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
     strcpy(outSig, "AutoAngle by Colin Lieberman");
     strcpy(outDesc, "adjust view down when crusing, and flat when landing");
 
-    ref_alt_msl         = XPLMFindDataRef("sim/flightmodel/position/elevation");
     ref_alt_agl         = XPLMFindDataRef("sim/flightmodel/position/y_agl");
     ref_deg_vert        = XPLMFindDataRef("sim/graphics/view/field_of_view_vertical_deg");
+
+    initConfig();
 
 	if( DEBUG ) {
         debug_window = XPLMCreateWindow(
