@@ -19,7 +19,6 @@ using namespace std;
 
 #include <iostream>
 
-#define DEBUG 0
+#define DEBUG 1
 #define CALLBACK_INTERVAL -1
 
-void initConfig( void );

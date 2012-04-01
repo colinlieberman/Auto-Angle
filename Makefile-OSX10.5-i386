@@ -1,12 +1,14 @@
 CC          = gcc
 CXX         = g++
-INCPATH     = -I../xsdk/CHeaders/XPLM -I../xsdk/CHeaders/Wrappers -I../xsdk/CHeaders/Widgets -I.
+LIBXPPCPATH = ../XPPConfig
+INCPATH     = -I../xsdk/CHeaders/XPLM -I../xsdk/CHeaders/Wrappers -I../xsdk/CHeaders/Widgets -I. -I$(LIBXPPCPATH)
 DEFINES     = -DXPLM200 -DAPL=1 -DIBM=0 -DLIN=0
 CXXFLAGS    = -pipe -Os -arch i386 -Wall -W -fPIC $(DEFINES)
 TARGET      = mac.xpl
-OBJECTS     = aa.o config.o
+OBJECTS     = aa.o
 CONF_FILE   = config.txt
-SOURCES     = aa.cpp aa.h config.cpp $(CONF_FILE)
+SOURCES     = aa.cpp aa.h $(CONF_FILE)
+LIBXPPC     = -L$(LIBXPPCPATH) -lxppconfig
 XP_PATH     = /Applications/X-Plane
 PLUGIN_PATH = $(XP_PATH)/Resources/plugins
 PKG_NAME    = AutoAngle
@@ -15,8 +17,7 @@ LFLAGS      = -headerpad_max_install_names -flat_namespace -undefined suppress -
 
 autoangle: $(SOURCES)
 	$(CXX) -c $(CXXFLAGS) -o aa.o aa.cpp $(INCPATH)
-	$(CXX) -c $(CXXFLAGS) -o config.o config.cpp $(INCPATH)
-	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS)
+	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(LIBXPPC)
 
 clean: 
 	rm -dfr $(PKG_NAME); rm $(TARGET); rm $(OBJECTS)

@@ -1,4 +1,7 @@
 #include "aa.h"
+#include "XPPConfig.h"
+
+#define TRANSITION_AMT 0.05
 
 XPLMDataRef ref_alt_agl         = NULL;
 XPLMDataRef ref_deg_vert        = NULL;
@@ -8,9 +11,10 @@ int				clicked = 0;
 
 char debug_string[255];
 
-extern float config_transition_alt;
-extern float config_offset_angle;
-extern float config_base_angle;
+float config_transition_alt = 1000;
+
+float view_angle_above;
+float view_angle_below;
 
 /* window callbacks for debugging */
 void MyDrawWindowCallback(
@@ -39,33 +43,75 @@ float AutoAngleCallback(
         int     inCounter,
         void    *inRefcon) {
 
-    /* get altitude - it's used in a number of places */
-    float alt_agl = XPLMGetDataf( ref_alt_agl );
-    float deg_vert;
+    float alt_agl   = XPLMGetDataf( ref_alt_agl );
+    float cur_angle = XPLMGetDataf( ref_deg_vert );
+    float target_angle;
+    float delta;
 
+    /* check to see how close we are, and adjust accordingly */
     if( alt_agl > config_transition_alt ) {
-        deg_vert = config_base_angle - config_offset_angle;
+        target_angle = view_angle_above; 
     }
     else {
-        deg_vert = config_base_angle;
+        target_angle = view_angle_below;
     }
 
-    XPLMSetDataf( ref_deg_vert, deg_vert );
+    /* now decide what direction to move the view */
+    delta = target_angle - cur_angle;
+
+    if( delta > 0 ) {
+   
+        /* > 0 means target angle is larger, need to adjust up */
+        target_angle = cur_angle + ( delta > TRANSITION_AMT 
+                                 ? TRANSITION_AMT
+                                 : delta );
+
+    }
+    else if( delta < 0 ) {
+        /* < 0 means cur_angle is larger, need to adjust down */
+        delta *= -1;
+        target_angle = cur_angle - ( delta > TRANSITION_AMT
+                                 ? TRANSITION_AMT
+                                 : delta );
+    }
+
+    XPLMSetDataf( ref_deg_vert, target_angle );
 
     return CALLBACK_INTERVAL;
 }
 
 PLUGIN_API int XPluginStart(char *outName, char *outSig, char *outDesc) {
 
+    float config_offset_angle = -7;
+    float config_base_angle = -.1;
+
+    int num_configs = 3;
+
+    XPPCItem *configs = XPPCInit( num_configs );
+
     /* First set up our plugin info. */
     strcpy(outName, "AutoAngle 0.1");
     strcpy(outSig, "AutoAngle by Colin Lieberman");
     strcpy(outDesc, "adjust view down when crusing, and flat when landing");
 
+    configs[0].key = "# TRANSITION ALTITUDE";
+    configs[0].ref = &config_transition_alt;
+
+    configs[1].key = "# OFFSET";
+    configs[1].ref = &config_offset_angle;
+    
+    configs[2].key = "# BASE";
+    configs[2].ref = &config_base_angle;
+
+    if( !XPPCParseConfigFile( "Resources/plugins/AutoAngle/config.txt", configs, num_configs ) ) {
+        XPLMDebugString( XPPCLastError() );
+    }
+
+    view_angle_above = config_base_angle + config_offset_angle;
+    view_angle_below = config_base_angle;
+
     ref_alt_agl         = XPLMFindDataRef("sim/flightmodel/position/y_agl");
     ref_deg_vert        = XPLMFindDataRef("sim/graphics/view/field_of_view_vertical_deg");
-
-    initConfig();
 
 	if( DEBUG ) {
         debug_window = XPLMCreateWindow(
